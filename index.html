@@ -6,35 +6,132 @@
   <title>DEVA-Aİ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body, html { width: 100%; height: 100%; background: #090d16; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .app { display: flex; flex-direction: column; height: 100vh; max-width: 600px; margin: 0 auto; background: #0f172a; }
-    .header { background: #1e293b; padding: 15px; text-align: center; border-bottom: 1px solid #334155; font-size: 18px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.4; word-break: break-word; }
+    body, html { width: 100%; height: 100%; background: #090d16; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+   
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #0f172a;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+   
+    .header {
+      background: #1e293b;
+      padding: 12px 20px;
+      text-align: center;
+      border-bottom: 1px solid #334155;
+      font-size: 18px;
+      font-weight: bold;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+   
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+   
+    .msg {
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 85%;
+      font-size: 15px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
     .msg.user { background: #0284c7; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
     .msg.ai { background: #1e293b; color: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #334155; }
-    .controls { background: #1e293b; padding: 10px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
-    .input-row { display: flex; gap: 8px; }
-    input[type="text"] { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px; outline: none; }
-    button { background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+   
+    .controls {
+      background: #1e293b;
+      padding: 12px 15px;
+      border-top: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+   
+    .input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+   
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: white;
+      font-size: 15px;
+      outline: none;
+      min-width: 0;
+    }
+   
+    button {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      height: 45px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 14px;
+    }
     button.draw { background: #8b5cf6; }
-    .file-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #94a3b8; padding: 0 5px; }
+    button:active { opacity: 0.8; }
+   
+    .file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #94a3b8;
+      background: #090d16;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+   
+    .file-row input { color: #94a3b8; font-size: 12px; max-width: 70%; }
+   
     img.result-img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
+    @media (min-width: 768px) {
+      body { padding: 20px; }
+      .app { height: 90vh; border-radius: 16px; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="header">✨ DEVA-Aİ</div>
+    <div class="header">🤖 DEVA-Aİ Studio</div>
     <div class="chat-box" id="chatBox">
-      <div class="msg ai">Naber kanka! Ben DEVA-Aİ. İster sohbet edelim ister 'Çiz' butonuna bas resim çizeyim.</div>
+      <div class="msg ai">Selam kanka! Ben DEVA-Aİ. Artık tamamen hazırım, ne konuşuyoruz veya ne çizdiriyoruz?</div>
     </div>
     <div class="controls">
       <div class="file-row">
-        <span>Fotoğraf:</span>
+        <span>Fotoğraf (Opsiyonel):</span>
         <input type="file" id="imageInput" accept="image/*">
       </div>
       <div class="input-row">
-        <input type="text" id="userInput" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter') sendChat()">
+        <input type="text" id="userInput" placeholder="Mesaj yaz veya resim tarif et..." onkeydown="if(event.key==='Enter') sendChat()">
         <button onclick="sendChat()">Gönder</button>
         <button class="draw" onclick="generateImage()">Çiz 🎨</button>
       </div>
@@ -61,7 +158,7 @@
       if (!text) return;
       addMessage(text, 'user');
       userInput.value = '';
-      addMessage('DEVA-Aİ yazıyor...', 'ai');
+      addMessage('Yazıyor...', 'ai');
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -70,7 +167,7 @@
         });
         const data = await response.json();
         chatBox.lastChild.remove();
-        addMessage(data.reply || 'Anlayamadım kanka, tekrar desene?', 'ai');
+        addMessage(data.reply || 'Anlayamadım kanka!', 'ai');
       } catch (err) {
         chatBox.lastChild.remove();
         addMessage('Bağlantı koptu kanka!', 'ai');
@@ -79,10 +176,10 @@
     async function generateImage() {
       const text = userInput.value.trim();
       const fileInput = document.getElementById('imageInput');
-      if (!text) return alert('Resim için ne çizeceğimi yazman lazım!');
+      if (!text) return alert('Resim için ne çizeceğimi yazman lazım kanka!');
       addMessage(`[Resim İsteği]: ${text}`, 'user');
       userInput.value = '';
-      addMessage('Resim çiziliyor...', 'ai');
+      addMessage('Fırçayı kaptım, çiziyorum...', 'ai');
       let imageUrl = null;
       if (fileInput.files && fileInput.files[0]) {
         imageUrl = await new Promise((resolve) => {
@@ -100,9 +197,9 @@
         const data = await response.json();
         chatBox.lastChild.remove();
         if (data.images && data.images[0]) {
-          addMessage('İşte resmin:', 'ai', data.images[0].url);
+          addMessage('Nasıl olmuş?', 'ai', data.images[0].url);
         } else {
-          addMessage('Resim çizilemedi!', 'ai');
+          addMessage('Resim çizilemedi kanka!', 'ai');
         }
       } catch (err) {
         chatBox.lastChild.remove();
