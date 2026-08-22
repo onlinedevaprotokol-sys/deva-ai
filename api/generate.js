@@ -2,37 +2,51 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Sadece POST kabul edilir' });
   }
-  let rawKey = process.env.FAL_KEY || '';
-  let cleanKey = rawKey.replace(/[\r\n\t]/g, '').trim();
-  if (!cleanKey) {
-    return res.status(500).json({ error: 'FAL_KEY bulunamadı!' });
-  }
-  const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
   const { type, message, prompt, image_url } = req.body;
-  try {
-    if (type === 'chat') {
-      // Doğrudan fal.ai üzerinden çalışan Llama 3.2 modeli
-      const response = await fetch('https://fal.run/fal-ai/any-llm', {
-        method: 'POST',
+  // GROQ İLE AKICI VE GERÇEK SOHBET
+  if (type === 'chat') {
+    let apiKey = process.env.GROQ_API_KEY || '';
+    apiKey = apiKey.replace(/[\r\n\t]/g, '').trim();
+    if (!apiKey) {
+      return res.status(500).json({ reply: 'GROQ_API_KEY Vercel üzerinde bulunamadı kanka!' });
+    }
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
         headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.2-3b-instruct",
+          model: "llama-3.3-70b-versatile",
           messages: [
-            { role: "system", content: "Sen DEVA-Aİ adında çok samimi, esprili, kanka gibi konuşan bir yapay zekasın. Kesinlikle resmi olma, 'siz' deme, Türkçe konuş." },
-            { role: "user", content: message }
+            {
+              role: "system",
+              content: "Sen DEVA-Aİ adında samimi, esprili, zeki ve tam bir kanka gibi konuşan bir yapay zekasın. Kesinlikle resmi olma, 'siz' deme. Kullanıcının mesajına birebir uygun, asla kendini tekrarlamayan, doğal Türkçe cevaplar ver."
+            },
+            {
+              role: "user",
+              content: message
+            }
           ]
-        }),
+        })
       });
       const data = await response.json();
-     
-      // Yanıtı farklı formatlardan güvenle ayıklıyoruz
-      const replyText = data.output || data.choices?.[0]?.message?.content || data.text || "Eyvallah kanka, ne diyorsun?";
-      return res.status(200).json({ reply: replyText });
+      const replyText = data.choices?.[0]?.message?.content;
+      if (replyText) {
+        return res.status(200).json({ reply: replyText.trim() });
+      } else {
+        return res.status(200).json({ reply: "Anlayamadım kanka, tekrar söylesene?" });
+      }
+    } catch (err) {
+      return res.status(500).json({ reply: "Bağlantı koptu kanka!" });
     }
-    // Resim modu
+  }
+  // RESİM ÇİZME (FAL_KEY)
+  let rawKey = process.env.FAL_KEY || '';
+  let cleanKey = rawKey.replace(/[\r\n\t]/g, '').trim();
+  const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
+  try {
     const endpoint = image_url
       ? 'https://fal.run/fal-ai/flux/dev/image-to-image'
       : 'https://fal.run/fal-ai/flux/schnell';
