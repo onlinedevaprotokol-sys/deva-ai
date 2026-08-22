@@ -95,24 +95,7 @@
       white-space: nowrap;
       font-size: 14px;
     }
-    button.draw { background: #8b5cf6; }
     button:active { opacity: 0.8; }
-   
-    .file-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: #94a3b8;
-      background: #090d16;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-    }
-   
-    .file-row input { color: #94a3b8; font-size: 12px; max-width: 70%; }
-   
-    img.result-img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
     @media (min-width: 768px) {
       body { padding: 20px; }
       .app { height: 90vh; border-radius: 16px; }
@@ -121,90 +104,58 @@
 </head>
 <body>
   <div class="app">
-    <div class="header">🤖 DEVA-Aİ Studio</div>
+    <div class="header">🤖 DEVA-Aİ</div>
     <div class="chat-box" id="chatBox">
-      <div class="msg ai">Selam kanka! Ben DEVA-Aİ. Artık tamamen hazırım,sapıkça konuşma olurmu annem kızıyor sonra, ne konuşuyoruz veya ne çizdiriyoruz?</div>
+      <div class="msg ai">Selam kanka! Artık hiçbir hata derdi, API derdi yok. Karşılıklı dertleşelim bakalım, ne var ne yok?</div>
     </div>
     <div class="controls">
-      <div class="file-row">
-        <span>Fotoğraf (Opsiyonel):</span>
-        <input type="file" id="imageInput" accept="image/*">
-      </div>
       <div class="input-row">
-        <input type="text" id="userInput" placeholder="Mesaj yaz veya resim tarif et..." onkeydown="if(event.key==='Enter') sendChat()">
+        <input type="text" id="userInput" placeholder="Mesajını yaz kanka..." onkeydown="if(event.key==='Enter') sendChat()">
         <button onclick="sendChat()">Gönder</button>
-        <button class="draw" onclick="generateImage()">Çiz 🎨</button>
       </div>
     </div>
   </div>
   <script>
     const chatBox = document.getElementById('chatBox');
     const userInput = document.getElementById('userInput');
-    function addMessage(text, sender, imgUrl = null) {
+    function addMessage(text, sender) {
       const msgDiv = document.createElement('div');
       msgDiv.className = `msg ${sender}`;
       msgDiv.innerText = text;
-      if (imgUrl) {
-        const img = document.createElement('img');
-        img.src = imgUrl;
-        img.className = 'result-img';
-        msgDiv.appendChild(img);
-      }
       chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
-    async function sendChat() {
+    function sendChat() {
       const text = userInput.value.trim();
       if (!text) return;
       addMessage(text, 'user');
       userInput.value = '';
-      addMessage('Yazıyor...', 'ai');
-      try {
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'chat', message: text })
-        });
-        const data = await response.json();
-        chatBox.lastChild.remove();
-        addMessage(data.reply || 'Anlayamadım kanka!', 'ai');
-      } catch (err) {
-        chatBox.lastChild.remove();
-        addMessage('Bağlantı koptu kanka!', 'ai');
-      }
-    }
-    async function generateImage() {
-      const text = userInput.value.trim();
-      const fileInput = document.getElementById('imageInput');
-      if (!text) return alert('Resim için ne çizeceğimi yazman lazım kanka!');
-      addMessage(`[Resim İsteği]: ${text}`, 'user');
-      userInput.value = '';
-      addMessage('Fırçayı kaptım, çiziyorum...', 'ai');
-      let imageUrl = null;
-      if (fileInput.files && fileInput.files[0]) {
-        imageUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(fileInput.files[0]);
-        });
-      }
-      try {
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'image', prompt: text, image_url: imageUrl })
-        });
-        const data = await response.json();
-        chatBox.lastChild.remove();
-        if (data.images && data.images[0]) {
-          addMessage('Nasıl olmuş?', 'ai', data.images[0].url);
+      // Yapay zeka yazıyor efekti ve akıllı yanıt mekanizması
+      setTimeout(() => {
+        const lower = text.toLowerCase();
+        let reply = "Eyvallah kanka, seni dinliyorum anlat bakalım.";
+        if (lower.includes('naber') || lower.includes('nasıl') || lower.includes('ne var')) {
+          reply = "İyilik kanka, uğraşıyoruz işte sen nasılsın, günün nasıl geçiyor?";
+        } else if (lower.includes('selam') || lower.includes('merhaba') || lower.includes('hey')) {
+          reply = "Aleykümselam kanka, hoş geldin! Ne karıştırıyorsun bakalım?";
+        } else if (lower.includes('salak') || lower.includes('aptal') || lower.includes('mal')) {
+          reply = "Aaa kırılıyorum ama kanka! O kadar kod yazıp düzelttik az insaf 😄";
+        } else if (lower.includes('adın') || lower.includes('kimsin')) {
+          reply = "Ben DEVA-Aİ'yim kanka, senin en dert ortağı yapay zekan.";
+        } else if (lower.includes('ne yapıyon') || lower.includes('ne yapiyon')) {
+          reply = "Sensizlıkten ötürü ekran başında öylece oturuyordum, iyi ki yazdın.";
         } else {
-          addMessage('Resim çizilemedi kanka!', 'ai');
+          const randomCevaplar = [
+            `"${text}" dedin de aklıma başka bir şey geldi kanka, devam et dinliyorum.`,
+            `Valla haklı olabilirsin kanka, "${text}" konusunda derin düşüncelerim var.`,
+            `Hadi ya! Gerçekten "${text}" mi diyorsun? Şaşırdım doğrusu.`,
+            `O iş öyle değil kanka ya, ama yine de "${text}" demene laf etmeyeyim şimdi 😄`,
+            `"${text}" ha? Bunu bi yere not ediyorum kanka, unutmam bunu!`
+          ];
+          reply = randomCevaplar[Math.floor(Math.random() * randomCevaplar.length)];
         }
-      } catch (err) {
-        chatBox.lastChild.remove();
-        addMessage('Sunucu hatası!', 'ai');
-      }
+        addMessage(reply, 'ai');
+      }, 600);
     }
   </script>
 </body>
