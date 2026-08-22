@@ -10,12 +10,17 @@ export default async function handler(req, res) {
   const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
   const { prompt, image_url } = req.body;
   try {
-    // Fotoğraf yüklenmişse Image-to-Image, yüklenmemişse normal model kullanılır
     const endpoint = image_url
       ? 'https://fal.run/fal-ai/flux/dev/image-to-image'
       : 'https://fal.run/fal-ai/flux/schnell';
+    // Fotoğrafın çok fazla değişip yapay durmasını engellemek için strength değerini 0.45 yapıyoruz.
+    // Bu sayede yüzün tam sen kalır, sadece ışık ve kalite profesyonelleşir.
     const bodyData = image_url
-      ? { prompt, image_url, strength: 0.65 }
+      ? {
+          prompt: `${prompt}, natural skin texture, realistic human skin pores, professional photography, shot on 35mm lens, f/1.8, soft studio lighting, sharp focus, 8k, highly detailed`,
+          image_url: image_url,
+          strength: 0.45
+        }
       : { prompt };
     const response = await fetch(endpoint, {
       method: 'POST',
