@@ -8,33 +8,26 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'FAL_KEY Vercel üzerinde bulunamadı!' });
   }
   const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
-  const { prompt, image_url } = req.body;
+  const { image_url } = req.body;
+  if (!image_url) {
+    return res.status(400).json({ error: 'Lütfen bir fotoğraf yükleyin!' });
+  }
   try {
-    const endpoint = image_url
-      ? 'https://fal.run/fal-ai/flux/dev/image-to-image'
-      : 'https://fal.run/fal-ai/flux/schnell';
-    // Fotoğrafın çok fazla değişip yapay durmasını engellemek için strength değerini 0.45 yapıyoruz.
-    // Bu sayede yüzün tam sen kalır, sadece ışık ve kalite profesyonelleşir.
-    const bodyData = image_url
-      ? {
-          prompt: `${prompt}, natural skin texture, realistic human skin pores, professional photography, shot on 35mm lens, f/1.8, soft studio lighting, sharp focus, 8k, highly detailed`,
-          image_url: image_url,
-          strength: 0.45
-        }
-      : { prompt };
-    const response = await fetch(endpoint, {
+    // Fotoğrafı profesyonelce güzelleştiren ve yüzü koruyan model
+    const response = await fetch('https://fal.run/fal-ai/esrgan', {
       method: 'POST',
       headers: {
         'Authorization': authHeader,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bodyData),
+      body: JSON.stringify({ image_url: image_url }),
     });
     const data = await response.json();
     if (!response.ok) {
       return res.status(response.status).json({ error: data.detail || 'Görsel işlenemedi.' });
     }
-    return res.status(200).json(data);
+    // ESRGAN bazen farklı format dönebilir, kontrol ediyoruz
+    return res.status(200).json(data.images ? data : { images: [{ url: data.image_url }] });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
