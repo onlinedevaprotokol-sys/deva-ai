@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   let rawKey = process.env.FAL_KEY || '';
   let cleanKey = rawKey.replace(/[\r\n\t]/g, '').trim();
   if (!cleanKey) {
-    return res.status(500).json({ error: 'FAL_KEY eksik!' });
+    return res.status(500).json({ error: 'FAL_KEY bulunamadı!' });
   }
   const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
   const { type, message, prompt, image_url } = req.body;
@@ -18,13 +18,19 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: `Sen DEVA-Aİ adında son derece akıllı, espirili, samimi ve kanka gibi konuşan bir yapay zekasın. Kesinlikle resmi dil kullanma. Türkçe cevap ver.\n\nKullanıcı: ${message}\nDEVA-Aİ:`,
+          prompt: `Sen DEVA-Aİ adında samimi, esprili, kanka gibi konuşan, akıllı bir yapay zekasın. Asla resmi olma, 'siz' deme, Türkçe konuş.\n\nKullanıcı: ${message}\nDEVA-Aİ:`,
           model: "meta-llama/llama-3.2-11b-vision-instruct"
         }),
       });
       const data = await response.json();
-      const replyText = data.output || data.text || data.generated_text || "Bir an dalmışım kanka, ne dedin?";
-      return res.status(200).json({ reply: replyText });
+     
+      // Çıktının hangi alanda geldiğini garantiye alıyoruz
+      let replyText = data.output || data.text || data.generated_text || (data.data && data.data.output);
+     
+      if (!replyText && typeof data === 'string') {
+        replyText = data;
+      }
+      return res.status(200).json({ reply: replyText || "Efendim kanka, dalmışım. Ne diyordun?" });
     }
     const endpoint = image_url
       ? 'https://fal.run/fal-ai/flux/dev/image-to-image'
