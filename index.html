@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Studio</title>
+  <title>AI Studio - Fotoğraf Güzelleştirici</title>
   <style>
     body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
     .card { background: #1e293b; padding: 2rem; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     h2 { margin-top: 0; color: #38bdf8; }
-    input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
-    button { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+    input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
+    .file-input-container { margin: 15px 0; text-align: left; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px; }
+    input[type="file"] { width: 100%; color: #94a3b8; font-size: 14px; }
+    button { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; margin-top: 10px; }
     button:hover { background: #0369a1; }
     #result { margin-top: 20px; display: none; }
     img { width: 100%; border-radius: 8px; margin-top: 10px; }
@@ -17,19 +20,25 @@
 </head>
 <body>
   <div class="card">
-    <h2>Kişisel AI Stüdyom</h2>
-    <input type="text" id="promptInput" placeholder="Örn: a cat floating in space">
-    <button onclick="generateImage()" id="btn">Görsel Üret</button>
+    <h2>AI Fotoğraf Stüdyom</h2>
+   
+    <div class="file-input-container">
+      <label>Fotoğrafını Yükle (İsteğe Bağlı):</label>
+      <input type="file" id="imageInput" accept="image/*">
+    </div>
+    <input type="text" id="promptInput" placeholder="Örn: enhance portrait, professional lighting, 8k">
+    <button onclick="generateImage()" id="btn">Görseli İşle / Üret</button>
    
     <div id="result">
-      <p id="status">Üretiliyor, lütfen bekle...</p>
+      <p id="status">İşleniyor, lütfen bekle...</p>
       <img id="outputImg" src="" alt="AI Result">
     </div>
   </div>
   <script>
     async function generateImage() {
       const prompt = document.getElementById('promptInput').value;
-      if (!prompt) return alert('Lütfen bir metin yazın!');
+      const fileInput = document.getElementById('imageInput');
+      if (!prompt) return alert('Lütfen bir açıklama/komut yazın!');
       const btn = document.getElementById('btn');
       const resultDiv = document.getElementById('result');
       const statusText = document.getElementById('status');
@@ -37,12 +46,23 @@
       btn.disabled = true;
       resultDiv.style.display = 'block';
       outputImg.style.display = 'none';
-      statusText.innerText = 'Yapay zeka çiziyor...';
+      statusText.innerText = 'Yapay zeka hazırlanıyor...';
+      let imageUrl = null;
+      // Eğer fotoğraf seçildiyse base64 formatına çevirelim
+      if (fileInput.files && fileInput.files[0]) {
+        statusText.innerText = 'Fotoğraf yükleniyor...';
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+      statusText.innerText = 'Yapay zeka fotoğrafını işliyor...';
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt })
+          body: JSON.stringify({ prompt: prompt, image_url: imageUrl })
         });
         const data = await response.json();
         if (data.images && data.images[0]) {
@@ -50,7 +70,7 @@
           outputImg.style.display = 'block';
           statusText.innerText = 'Tamamlandı!';
         } else {
-          statusText.innerText = 'Hata: ' + (data.error || 'Görsel üretilemedi.');
+          statusText.innerText = 'Hata: ' + (data.error || 'Görsel işlenemedi.');
         }
       } catch (err) {
         statusText.innerText = 'Bağlantı hatası: ' + err.message;
