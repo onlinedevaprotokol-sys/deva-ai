@@ -5,45 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>DEVA-Aİ</title>
   <style>
-    * { box-sizing: border-box; }
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #0f172a; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
-    .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; background: #0f172a; }
-    .header { background: #1e293b; padding: 15px; text-align: center; border-bottom: 1px solid #334155; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-    .header h1 { margin: 0; font-size: 20px; color: #38bdf8; font-weight: bold; }
-    .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .msg { padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 15px; line-height: 1.4; word-break: break-word; }
-    .msg.user { background: #0284c7; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .msg.ai { background: #1e293b; color: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #334155; }
-    .input-area { background: #1e293b; padding: 10px 15px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
-    input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px; outline: none; }
-    .file-input { font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; }
-    .file-input input { font-size: 12px; color: #94a3b8; width: 70%; }
-    .btn-group { display: flex; gap: 10px; }
-    button { flex: 1; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    button.secondary { background: #334155; }
-    button:active { opacity: 0.8; }
-    img.result-img { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; background: #090d16; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .app { display: flex; flex-direction: column; height: 100vh; max-width: 600px; margin: 0 auto; background: #0f172a; }
+    .header { background: #1e293b; padding: 15px; text-align: center; border-bottom: 1px solid #334155; font-size: 18px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.4; word-break: break-word; }
+    .msg.user { background: #0284c7; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .msg.ai { background: #1e293b; color: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #334155; }
+    .controls { background: #1e293b; padding: 10px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
+    .input-row { display: flex; gap: 8px; }
+    input[type="text"] { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px; outline: none; }
+    button { background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    button.draw { background: #8b5cf6; }
+    .file-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #94a3b8; padding: 0 5px; }
+    img.result-img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <div class="header">
-      <h1>DEVA-Aİ 🤖</h1>
-    </div>
+  <div class="app">
+    <div class="header">✨ DEVA-Aİ</div>
     <div class="chat-box" id="chatBox">
-      <div class="msg ai">Selamlar! Ben DEVA-Aİ. İster laklak edelim, ister komut ver resim çizeyim. Ne var ne yok?</div>
+      <div class="msg ai">Naber kanka! Ben DEVA-Aİ. İster sohbet edelim ister 'Çiz' butonuna bas resim çizeyim.</div>
     </div>
-    <div class="input-area">
-      <div class="file-input">
-        <span>Fotoğraf Ekle:</span>
+    <div class="controls">
+      <div class="file-row">
+        <span>Fotoğraf:</span>
         <input type="file" id="imageInput" accept="image/*">
       </div>
-     
-      <input type="text" id="userInput" placeholder="Mesajını yaz veya resim tarif et...">
-     
-      <div class="btn-group">
-        <button onclick="sendChat()">Sohbet Et 💬</button>
-        <button onclick="generateImage()" class="secondary">Resim Çiz 🎨</button>
+      <div class="input-row">
+        <input type="text" id="userInput" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter') sendChat()">
+        <button onclick="sendChat()">Gönder</button>
+        <button class="draw" onclick="generateImage()">Çiz 🎨</button>
       </div>
     </div>
   </div>
@@ -68,7 +61,7 @@
       if (!text) return;
       addMessage(text, 'user');
       userInput.value = '';
-      addMessage('Yazıyor...', 'ai');
+      addMessage('DEVA-Aİ yazıyor...', 'ai');
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -89,7 +82,7 @@
       if (!text) return alert('Resim için ne çizeceğimi yazman lazım!');
       addMessage(`[Resim İsteği]: ${text}`, 'user');
       userInput.value = '';
-      addMessage('Resmi çiziyorum, bekle biraz...', 'ai');
+      addMessage('Resim çiziliyor...', 'ai');
       let imageUrl = null;
       if (fileInput.files && fileInput.files[0]) {
         imageUrl = await new Promise((resolve) => {
@@ -107,13 +100,13 @@
         const data = await response.json();
         chatBox.lastChild.remove();
         if (data.images && data.images[0]) {
-          addMessage('Al bakalım nasıl olmuş:', 'ai', data.images[0].url);
+          addMessage('İşte resmin:', 'ai', data.images[0].url);
         } else {
-          addMessage('Resim çizilemedi kanka!', 'ai');
+          addMessage('Resim çizilemedi!', 'ai');
         }
       } catch (err) {
         chatBox.lastChild.remove();
-        addMessage('Resim sunucusuna ulaşılamadı!', 'ai');
+        addMessage('Sunucu hatası!', 'ai');
       }
     }
   </script>
