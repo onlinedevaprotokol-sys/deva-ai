@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Profesyonel Portre Restorasyonu</title>
+  <title>AI Studio - Profesyonel Görsel Stüdyosu</title>
   <style>
     body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
     .card { background: #1e293b; padding: 2rem; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     h2 { margin-top: 0; color: #38bdf8; }
+    input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
     .file-input-container { margin: 15px 0; text-align: left; }
     label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px; }
     input[type="file"] { width: 100%; color: #94a3b8; font-size: 14px; }
@@ -15,68 +16,58 @@
     button:hover { background: #0369a1; }
     #result { margin-top: 20px; display: none; }
     img { width: 100%; border-radius: 8px; margin-top: 10px; }
-    .compare-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
-    .compare-img { max-width: calc(50% - 5px); width: 100%; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>AI Profesyonel Portre</h2>
+    <h2>AI Stüdyom</h2>
    
     <div class="file-input-container">
-      <label>Fotoğrafını Yükle:</label>
+      <label>Fotoğraf Yükle (Değiştirmek/Güzelleştirmek İçin):</label>
       <input type="file" id="imageInput" accept="image/*">
     </div>
-    <button onclick="processImage()" id="btn">Fotoğrafı Profesyonelleştir</button>
+    <input type="text" id="promptInput" placeholder="İstek yaz (Örn: professional studio lighting, portrait)">
+    <button onclick="generateImage()" id="btn">Görsel Üret / Düzenle</button>
    
     <div id="result">
       <p id="status">İşleniyor, lütfen bekle...</p>
-      <div class="compare-container">
-          <img id="originalImgDisplay" src="" alt="Orijinal" class="compare-img">
-          <img id="outputImg" src="" alt="AI Sonuç" class="compare-img">
-      </div>
+      <img id="outputImg" src="" alt="AI Result">
     </div>
   </div>
   <script>
-    async function processImage() {
+    async function generateImage() {
+      const prompt = document.getElementById('promptInput').value;
       const fileInput = document.getElementById('imageInput');
-      if (!fileInput.files || !fileInput.files[0]) return alert('Lütfen bir fotoğraf seçin!');
+      if (!prompt) return alert('Lütfen bir komut/açıklama yazın!');
       const btn = document.getElementById('btn');
       const resultDiv = document.getElementById('result');
       const statusText = document.getElementById('status');
       const outputImg = document.getElementById('outputImg');
-      const originalImgDisplay = document.getElementById('originalImgDisplay');
       btn.disabled = true;
       resultDiv.style.display = 'block';
       outputImg.style.display = 'none';
-      originalImgDisplay.style.display = 'none';
-      statusText.innerText = 'Fotoğraf yükleniyor...';
-      // Orijinal fotoğrafı gösterelim
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          originalImgDisplay.src = e.target.result;
-          originalImgDisplay.style.display = 'block';
-      };
-      reader.readAsDataURL(fileInput.files[0]);
-      // Base64'e çevirelim
-      const imageUrl = await new Promise((resolve) => {
-        const readerBase64 = new FileReader();
-        readerBase64.onloadend = () => resolve(readerBase64.result);
-        readerBase64.readAsDataURL(fileInput.files[0]);
-      });
-      statusText.innerText = 'Yapay zeka fotoğrafı profesyonelleştiriyor...';
+      statusText.innerText = 'Yapay zeka hazırlanıyor...';
+      let imageUrl = null;
+      if (fileInput.files && fileInput.files[0]) {
+        statusText.innerText = 'Fotoğraf yükleniyor...';
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+      statusText.innerText = 'Yapay zeka görseli işliyor...';
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_url: imageUrl })
+          body: JSON.stringify({ prompt: prompt, image_url: imageUrl })
         });
         const data = await response.json();
-        const finalUrl = data.images ? data.images[0].url : data.image_url;
-        if (finalUrl) {
-          outputImg.src = finalUrl;
+        if (data.images && data.images[0]) {
+          outputImg.src = data.images[0].url;
           outputImg.style.display = 'block';
-          statusText.innerText = 'Tamamlandı! Orijinal (sol) vs AI (sağ)';
+          statusText.innerText = 'Tamamlandı!';
         } else {
           statusText.innerText = 'Hata: ' + (data.error || 'Görsel işlenemedi.');
         }
