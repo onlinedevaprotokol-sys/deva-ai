@@ -3,78 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Studio - Profesyonel Görsel Stüdyosu</title>
+  <title>Kanka AI Studio</title>
   <style>
-    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .card { background: #1e293b; padding: 2rem; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+    .card { background: #1e293b; padding: 1.5rem; border-radius: 16px; text-align: center; max-width: 420px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     h2 { margin-top: 0; color: #38bdf8; }
-    input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
-    .file-input-container { margin: 15px 0; text-align: left; }
-    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px; }
-    input[type="file"] { width: 100%; color: #94a3b8; font-size: 14px; }
-    button { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; margin-top: 10px; }
-    button:hover { background: #0369a1; }
-    #result { margin-top: 20px; display: none; }
-    img { width: 100%; border-radius: 8px; margin-top: 10px; }
+    .chat-box { background: #0f172a; border-radius: 10px; height: 250px; overflow-y: auto; padding: 10px; text-align: left; margin-bottom: 15px; font-size: 14px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #334155; }
+    .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; word-break: break-word; }
+    .msg.user { background: #0284c7; color: white; align-self: flex-end; }
+    .msg.ai { background: #334155; color: #f1f5f9; align-self: flex-start; }
+    input[type="text"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
+    .btn-group { display: flex; gap: 8px; }
+    button { flex: 1; background: #0284c7; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    button.secondary { background: #475569; }
+    button:hover { opacity: 0.9; }
+    .file-container { font-size: 11px; text-align: left; color: #94a3b8; margin-bottom: 8px; }
+    img.result-img { width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>AI Stüdyom</h2>
+    <h2>Kanka AI 🤖</h2>
    
-    <div class="file-input-container">
-      <label>Fotoğraf Yükle (Değiştirmek/Güzelleştirmek İçin):</label>
+    <div class="chat-box" id="chatBox">
+      <div class="msg ai">Selam canım! Ben senin kanka AI'yım. İster laklak edelim, ister çizim yaptıralım. Ne var ne yok?</div>
+    </div>
+    <input type="text" id="userInput" placeholder="Yaz bakalım bir şeyler...">
+   
+    <div class="file-container">
+      <label>Fotoğrafın varsa yükle (Resim çizdirirken kullanırız):</label>
       <input type="file" id="imageInput" accept="image/*">
     </div>
-    <input type="text" id="promptInput" placeholder="İstek yaz (Örn: professional studio lighting, portrait)">
-    <button onclick="generateImage()" id="btn">Görsel Üret / Düzenle</button>
-   
-    <div id="result">
-      <p id="status">İşleniyor, lütfen bekle...</p>
-      <img id="outputImg" src="" alt="AI Result">
+    <div class="btn-group">
+      <button onclick="sendChat()">Sohbet Et 💬</button>
+      <button onclick="generateImage()" class="secondary">Resim Çiz 🎨</button>
     </div>
+    <img id="outputImg" class="result-img" alt="AI Result">
   </div>
   <script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const outputImg = document.getElementById('outputImg');
+    function addMessage(text, sender) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `msg ${sender}`;
+      msgDiv.innerText = text;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    async function sendChat() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      userInput.value = '';
+      addMessage('Düşünüyorum kanka...', 'ai');
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'chat', message: text })
+        });
+        const data = await response.json();
+        chatBox.lastChild.remove(); // Düşünüyorum mesajını kaldır
+        addMessage(data.reply || 'Kafa gitti bende kanka, tekrar desene?', 'ai');
+      } catch (err) {
+        chatBox.lastChild.remove();
+        addMessage('Bağlantı koptu be kanka!', 'ai');
+      }
+    }
     async function generateImage() {
-      const prompt = document.getElementById('promptInput').value;
+      const text = userInput.value.trim();
       const fileInput = document.getElementById('imageInput');
-      if (!prompt) return alert('Lütfen bir komut/açıklama yazın!');
-      const btn = document.getElementById('btn');
-      const resultDiv = document.getElementById('result');
-      const statusText = document.getElementById('status');
-      const outputImg = document.getElementById('outputImg');
-      btn.disabled = true;
-      resultDiv.style.display = 'block';
+      if (!text) return alert('Kanka resim için ne çizeceğimi yazman lazım!');
+      addMessage(`[Resim İsteği]: ${text}`, 'user');
+      addMessage('Fırçayı hazırlıyorum, bekle iki dk...', 'ai');
       outputImg.style.display = 'none';
-      statusText.innerText = 'Yapay zeka hazırlanıyor...';
       let imageUrl = null;
       if (fileInput.files && fileInput.files[0]) {
-        statusText.innerText = 'Fotoğraf yükleniyor...';
         imageUrl = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result);
           reader.readAsDataURL(fileInput.files[0]);
         });
       }
-      statusText.innerText = 'Yapay zeka görseli işliyor...';
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt, image_url: imageUrl })
+          body: JSON.stringify({ type: 'image', prompt: text, image_url: imageUrl })
         });
         const data = await response.json();
+        chatBox.lastChild.remove();
         if (data.images && data.images[0]) {
+          addMessage('Al bakalım, nasıl olmuş? 👇', 'ai');
           outputImg.src = data.images[0].url;
           outputImg.style.display = 'block';
-          statusText.innerText = 'Tamamlandı!';
         } else {
-          statusText.innerText = 'Hata: ' + (data.error || 'Görsel işlenemedi.');
+          addMessage('Resmi çizemedim ya, nazar değdi!', 'ai');
         }
       } catch (err) {
-        statusText.innerText = 'Bağlantı hatası: ' + err.message;
-      } finally {
-        btn.disabled = false;
+        chatBox.lastChild.remove();
+        addMessage('Resim sunucusuna ulaşılamadı salak!', 'ai');
       }
     }
   </script>
