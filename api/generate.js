@@ -1,40 +1,82 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Sadece POST kabul edilir' });
-  }
-  let rawKey = process.env.FAL_KEY || '';
-  let cleanKey = rawKey.replace(/[\r\n\t]/g, '').trim();
-  if (!cleanKey) {
-    return res.status(500).json({ error: 'FAL_KEY Vercel üzerinde bulunamadı!' });
-  }
-  const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
-  const { prompt, image_url } = req.body;
-  try {
-    // Fotoğraf yüklendiyse yüzü koruyup düzenleyen model, yüklenmediyse sıfırdan üreten model
-    const endpoint = image_url
-      ? 'https://fal.run/fal-ai/flux/dev/image-to-image'
-      : 'https://fal.run/fal-ai/flux/schnell';
-    const bodyData = image_url
-      ? {
-          prompt: `${prompt}, photorealistic, studio portrait, shot on 35mm lens, highly detailed, realistic skin texture`,
-          image_url: image_url,
-          strength: 0.35 // Yüz hatlarının bozulmaması için dengeli değişim oranı
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Studio - Profesyonel Görsel Stüdyosu</title>
+  <style>
+    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #1e293b; padding: 2rem; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    h2 { margin-top: 0; color: #38bdf8; }
+    input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
+    .file-input-container { margin: 15px 0; text-align: left; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 5px; }
+    input[type="file"] { width: 100%; color: #94a3b8; font-size: 14px; }
+    button { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; margin-top: 10px; }
+    button:hover { background: #0369a1; }
+    #result { margin-top: 20px; display: none; }
+    img { width: 100%; border-radius: 8px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>AI Stüdyom</h2>
+   
+    <div class="file-input-container">
+      <label>Fotoğraf Yükle (Değiştirmek/Güzelleştirmek İçin):</label>
+      <input type="file" id="imageInput" accept="image/*">
+    </div>
+    <input type="text" id="promptInput" placeholder="İstek yaz (Örn: professional studio lighting, portrait)">
+    <button onclick="generateImage()" id="btn">Görsel Üret / Düzenle</button>
+   
+    <div id="result">
+      <p id="status">İşleniyor, lütfen bekle...</p>
+      <img id="outputImg" src="" alt="AI Result">
+    </div>
+  </div>
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById('promptInput').value;
+      const fileInput = document.getElementById('imageInput');
+      if (!prompt) return alert('Lütfen bir komut/açıklama yazın!');
+      const btn = document.getElementById('btn');
+      const resultDiv = document.getElementById('result');
+      const statusText = document.getElementById('status');
+      const outputImg = document.getElementById('outputImg');
+      btn.disabled = true;
+      resultDiv.style.display = 'block';
+      outputImg.style.display = 'none';
+      statusText.innerText = 'Yapay zeka hazırlanıyor...';
+      let imageUrl = null;
+      if (fileInput.files && fileInput.files[0]) {
+        statusText.innerText = 'Fotoğraf yükleniyor...';
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+      statusText.innerText = 'Yapay zeka görseli işliyor...';
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt, image_url: imageUrl })
+        });
+        const data = await response.json();
+        if (data.images && data.images[0]) {
+          outputImg.src = data.images[0].url;
+          outputImg.style.display = 'block';
+          statusText.innerText = 'Tamamlandı!';
+        } else {
+          statusText.innerText = 'Hata: ' + (data.error || 'Görsel işlenemedi.');
         }
-      : { prompt };
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bodyData),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.detail || 'Görsel işlenemedi.' });
+      } catch (err) {
+        statusText.innerText = 'Bağlantı hatası: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
     }
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-}
+  </script>
+</body>
+</html>
