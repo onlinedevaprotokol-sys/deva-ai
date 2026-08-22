@@ -2,14 +2,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Sadece POST kabul edilir' });
   }
-  // Vercel'e eklenen anahtar kontrolü
-  let apiKey = process.env.FAL_KEY;
-  if (!apiKey) {
+  // API anahtarındaki gizli görünmez karakterleri ve boşlukları tamamen temizliyoruz
+  let rawKey = process.env.FAL_KEY || '';
+  let cleanKey = rawKey.replace(/[\r\n\t]/g, '').trim();
+  if (!cleanKey) {
     return res.status(500).json({ error: 'FAL_KEY Vercel üzerinde bulunamadı!' });
   }
-  // Anahtarın başında Key kelimesi yoksa ekleyelim
-  apiKey = apiKey.trim();
-  const authHeader = apiKey.startsWith('Key ') ? apiKey : `Key ${apiKey}`;
+  const authHeader = cleanKey.startsWith('Key ') ? cleanKey : `Key ${cleanKey}`;
   try {
     const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
       method: 'POST',
@@ -21,7 +20,7 @@ export default async function handler(req, res) {
     });
     const data = await response.json();
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.detail || 'Fal.ai yanıt vermedi.' });
+      return res.status(response.status).json({ error: data.detail || 'Fal.ai bir hata döndürdü.' });
     }
     return res.status(200).json(data);
   } catch (error) {
