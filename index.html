@@ -2,52 +2,64 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kanka AI Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DEVA-Aİ</title>
   <style>
-    body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
-    .card { background: #1e293b; padding: 1.5rem; border-radius: 16px; text-align: center; max-width: 420px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    h2 { margin-top: 0; color: #38bdf8; }
-    .chat-box { background: #0f172a; border-radius: 10px; height: 250px; overflow-y: auto; padding: 10px; text-align: left; margin-bottom: 15px; font-size: 14px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #334155; }
-    .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; word-break: break-word; }
-    .msg.user { background: #0284c7; color: white; align-self: flex-end; }
-    .msg.ai { background: #334155; color: #f1f5f9; align-self: flex-start; }
-    input[type="text"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
-    .btn-group { display: flex; gap: 8px; }
-    button { flex: 1; background: #0284c7; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; }
-    button.secondary { background: #475569; }
-    button:hover { opacity: 0.9; }
-    .file-container { font-size: 11px; text-align: left; color: #94a3b8; margin-bottom: 8px; }
-    img.result-img { width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #0f172a; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+    .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; background: #0f172a; }
+    .header { background: #1e293b; padding: 15px; text-align: center; border-bottom: 1px solid #334155; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .header h1 { margin: 0; font-size: 20px; color: #38bdf8; font-weight: bold; }
+    .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .msg { padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 15px; line-height: 1.4; word-break: break-word; }
+    .msg.user { background: #0284c7; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .msg.ai { background: #1e293b; color: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #334155; }
+    .input-area { background: #1e293b; padding: 10px 15px; border-top: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
+    input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px; outline: none; }
+    .file-input { font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; }
+    .file-input input { font-size: 12px; color: #94a3b8; width: 70%; }
+    .btn-group { display: flex; gap: 10px; }
+    button { flex: 1; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    button.secondary { background: #334155; }
+    button:active { opacity: 0.8; }
+    img.result-img { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Kanka AI 🤖</h2>
-   
+  <div class="app-container">
+    <div class="header">
+      <h1>DEVA-Aİ 🤖</h1>
+    </div>
     <div class="chat-box" id="chatBox">
-      <div class="msg ai">Selam canım! Ben senin kanka AI'yım. İster laklak edelim, ister çizim yaptıralım. Ne var ne yok?</div>
+      <div class="msg ai">Selamlar! Ben DEVA-Aİ. İster laklak edelim, ister komut ver resim çizeyim. Ne var ne yok?</div>
     </div>
-    <input type="text" id="userInput" placeholder="Yaz bakalım bir şeyler...">
-   
-    <div class="file-container">
-      <label>Fotoğrafın varsa yükle (Resim çizdirirken kullanırız):</label>
-      <input type="file" id="imageInput" accept="image/*">
+    <div class="input-area">
+      <div class="file-input">
+        <span>Fotoğraf Ekle:</span>
+        <input type="file" id="imageInput" accept="image/*">
+      </div>
+     
+      <input type="text" id="userInput" placeholder="Mesajını yaz veya resim tarif et...">
+     
+      <div class="btn-group">
+        <button onclick="sendChat()">Sohbet Et 💬</button>
+        <button onclick="generateImage()" class="secondary">Resim Çiz 🎨</button>
+      </div>
     </div>
-    <div class="btn-group">
-      <button onclick="sendChat()">Sohbet Et 💬</button>
-      <button onclick="generateImage()" class="secondary">Resim Çiz 🎨</button>
-    </div>
-    <img id="outputImg" class="result-img" alt="AI Result">
   </div>
   <script>
     const chatBox = document.getElementById('chatBox');
     const userInput = document.getElementById('userInput');
-    const outputImg = document.getElementById('outputImg');
-    function addMessage(text, sender) {
+    function addMessage(text, sender, imgUrl = null) {
       const msgDiv = document.createElement('div');
       msgDiv.className = `msg ${sender}`;
       msgDiv.innerText = text;
+      if (imgUrl) {
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.className = 'result-img';
+        msgDiv.appendChild(img);
+      }
       chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -56,7 +68,7 @@
       if (!text) return;
       addMessage(text, 'user');
       userInput.value = '';
-      addMessage('Düşünüyorum kanka...', 'ai');
+      addMessage('Yazıyor...', 'ai');
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -64,20 +76,20 @@
           body: JSON.stringify({ type: 'chat', message: text })
         });
         const data = await response.json();
-        chatBox.lastChild.remove(); // Düşünüyorum mesajını kaldır
-        addMessage(data.reply || 'Kafa gitti bende kanka, tekrar desene?', 'ai');
+        chatBox.lastChild.remove();
+        addMessage(data.reply || 'Anlayamadım kanka, tekrar desene?', 'ai');
       } catch (err) {
         chatBox.lastChild.remove();
-        addMessage('Bağlantı koptu be kanka!', 'ai');
+        addMessage('Bağlantı koptu kanka!', 'ai');
       }
     }
     async function generateImage() {
       const text = userInput.value.trim();
       const fileInput = document.getElementById('imageInput');
-      if (!text) return alert('Kanka resim için ne çizeceğimi yazman lazım!');
+      if (!text) return alert('Resim için ne çizeceğimi yazman lazım!');
       addMessage(`[Resim İsteği]: ${text}`, 'user');
-      addMessage('Fırçayı hazırlıyorum, bekle iki dk...', 'ai');
-      outputImg.style.display = 'none';
+      userInput.value = '';
+      addMessage('Resmi çiziyorum, bekle biraz...', 'ai');
       let imageUrl = null;
       if (fileInput.files && fileInput.files[0]) {
         imageUrl = await new Promise((resolve) => {
@@ -95,15 +107,13 @@
         const data = await response.json();
         chatBox.lastChild.remove();
         if (data.images && data.images[0]) {
-          addMessage('Al bakalım, nasıl olmuş? 👇', 'ai');
-          outputImg.src = data.images[0].url;
-          outputImg.style.display = 'block';
+          addMessage('Al bakalım nasıl olmuş:', 'ai', data.images[0].url);
         } else {
-          addMessage('Resmi çizemedim ya, nazar değdi!', 'ai');
+          addMessage('Resim çizilemedi kanka!', 'ai');
         }
       } catch (err) {
         chatBox.lastChild.remove();
-        addMessage('Resim sunucusuna ulaşılamadı salak!', 'ai');
+        addMessage('Resim sunucusuna ulaşılamadı!', 'ai');
       }
     }
   </script>
